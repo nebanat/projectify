@@ -4,12 +4,13 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
 class File extends Model
 {
     use SoftDeletes;
 
-    protected $fillables =[
+    protected $fillable =[
         'title',
         'overview_short',
         'overview',
@@ -20,12 +21,32 @@ class File extends Model
         'approved',
         'finished'
     ];
-    public function getRouteKeyName(){
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function($file){
+            $file->identifier = uniqid(true);
+        });
+    }
+    public function getRouteKeyName()
+    {
         return 'identifier';
     }
 
     //file relationship with user
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
+    }
+
+    public function scopeFinished(Builder $builder)
+    {
+        return $builder->where('finished',true);
+    }
+
+    public function isFree()
+    {
+        return $this->price == 0;
     }
 }
